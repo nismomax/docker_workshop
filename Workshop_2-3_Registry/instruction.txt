@@ -1,0 +1,53 @@
+For this workshop. We will demonstrate "registry on single docker-machine", "registry on multiple docker"
+
+---------------------------------------------------------------------------------------------------
+Part1: Registry on single docker-machine
+---------------------------------------------------------------------------------------------------
+
+1. Getting image of registry by command:
+docker pull registry:2.6.2
+	*REMARK: Registry image sizing about 33 MB
+
+2. Running registry by command:
+
+	docker run -d -p 5000:5000 \
+	--restart=always --name registrylab \
+	-e REGISTRY_STORAGE_DELETE_ENABLED=true \
+	--mount type=bind,source=/home/docker,target=/var/lib/registry \
+	registry:2.6.2
+
+3. Tag image for upload to new registry with command:
+
+	docker tag labdocker/alpine:latest \
+	localhost:5000/alpine:latest
+
+4. Push docker images to registry with command: "docker push localhost:5000/alpine:latest"
+
+*REMARK: Keep digest :
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ sha256:65242e8220a341cec40628caaea77eb4acd2fc252329aa853526fde15a4a1d85 size: 528
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+5. Operate with registry with curl:
+
+	curl -X GET http://localhost:5000/v2/_catalog ==> List all images in catalog
+	curl -X GET http://localhost:5000/v2/alpine/tags/list ==> List all tag on alpine image
+
+6. Test Delete and redownload docker image with command:
+
+	docker image remove localhost:5000/alpine:latest
+	docker images
+	docker pull localhost:5000/alpine:latest
+	docker images
+
+7. Delete docker images from registry
+
+	curl -X DELETE http://localhost:5000/v2/alpine/manifests/sha256:65242e8220a341cec40628caaea77eb4acd2fc252329aa853526fde15a4a1d85
+
+8. Clean Up Lab by command:
+
+	docker stop registrylab
+	docker rm -v registrylab
+
